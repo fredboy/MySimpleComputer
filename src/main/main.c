@@ -41,7 +41,6 @@ void signalhandler(int signo) {
 int load_program() {
 	char filename[256];
 	promptForString("Path to executable:", filename);
-	promptForInt(filename);
     FILE *file;
     file = fopen(filename, "rb");
     if (file == NULL) return -1;
