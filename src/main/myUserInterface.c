@@ -44,6 +44,40 @@ int promptForInt(const char *text) {
     return input;
 }
 
+char *promptForString(const char *text, char *input) {
+    sc_regset(SIGIGNORE, 1);
+    mt_setbgcolor(WHITE);
+    mt_setfgcolor(GREEN);
+    for (int i = 2; i < 84; i++) {
+        for (int j = 5; j < 10; j++) {
+            mt_goto(j, i);
+            printf(ENTER_MODE);
+            printf(" ");
+            printf(EXIT_MODE);
+        }
+    }
+    mt_setbgcolor(BLACK);
+    for (int i = 5; i < 81; i++) {
+        mt_goto(7, i);
+        printf(ENTER_MODE);
+        printf(" ");
+        printf(EXIT_MODE);
+    }
+    mt_setbgcolor(WHITE);
+    bc_box(5, 3, 5, 80);
+    mt_goto(6, 5);
+    mt_setfgcolor(RED);
+    printf("%s", text);
+    mt_goto(7, 5);
+    mt_setbgcolor(BLACK);
+    mt_setfgcolor(DEFAULT);
+    scanf("%s", input);
+    mt_setbgcolor(DEFAULT);
+    sc_regset(SIGIGNORE, 0);
+    return input;
+}
+
+
 void printValue(int pointer, int val) {
     sc_regset(SIGIGNORE, 1);
     mt_setbgcolor(WHITE);

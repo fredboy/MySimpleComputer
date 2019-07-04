@@ -38,7 +38,10 @@ void signalhandler(int signo) {
     }
 }
 
-int load_program(const char *filename) {
+int load_program() {
+	char filename[256];
+	promptForString("Path to executable:", filename);
+	promptForInt(filename);
     FILE *file;
     file = fopen(filename, "rb");
     if (file == NULL) return -1;
@@ -93,7 +96,7 @@ int main() {
                     instructionCounter = promptForInt("Enter the pointer:");
                     break;
                 case RUN:
-                    load_program("out.o");
+                    load_program();
                     sc_regset(CLKIGNORE, 1);
                     settimer(1);
                     break;

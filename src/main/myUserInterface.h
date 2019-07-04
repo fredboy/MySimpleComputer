@@ -5,6 +5,8 @@
 
 int promptForInt(const char *);
 
+char *promptForString(const char *, char *);
+
 void printValue(int, int);
 
 void displayMemory();
