@@ -8,9 +8,10 @@
 #include "myTerm.h"
 #include "myBigChars.h"
 
-int command, operand, value, big[2] = {0, 0};
+int opcode, operand, value, big[2] = {0, 0};
 
 int promptForInt(const char *text) {
+    sc_regset(SIGIGNORE, 1);
     mt_setbgcolor(WHITE);
     mt_setfgcolor(GREEN);
     for (int i = 2; i < 84; i++) {
@@ -36,10 +37,36 @@ int promptForInt(const char *text) {
     mt_goto(7, 5);
     mt_setbgcolor(BLACK);
     mt_setfgcolor(DEFAULT);
-    char input[64];
-    scanf("%s", input);
+    int input;
+    scanf("%i", &input);
     mt_setbgcolor(DEFAULT);
-    return (int) strtol(input, (char **)NULL, 10);
+    sc_regset(SIGIGNORE, 0);
+    return input;
+}
+
+void printValue(int pointer, int val) {
+    sc_regset(SIGIGNORE, 1);
+    mt_setbgcolor(WHITE);
+    mt_setfgcolor(GREEN);
+    for (int i = 2; i < 84; i++) {
+        for (int j = 5; j < 10; j++) {
+            mt_goto(j, i);
+            printf(ENTER_MODE);
+            printf(" ");
+            printf(EXIT_MODE);
+        }
+    }
+    bc_box(5, 3, 5, 80);
+    mt_goto(6, 5);
+    mt_setfgcolor(RED);
+    printf("Value at 0x%04X: 0x%04X\n", pointer, val);
+    mt_goto(7, 5);
+    printf("Press any key to close this message.\n");
+    mt_setfgcolor(DEFAULT);
+    mt_setbgcolor(DEFAULT);
+    enum keys key;
+    rk_readkey(&key);
+    sc_regset(SIGIGNORE, 0);
 }
 
 void displayMemory() {
@@ -79,7 +106,7 @@ void displayAccumulator() {
     printf(" Accumulator ");
     mt_setbgcolor(DEFAULT);
     mt_goto(2, 71);
-    sc_memoryget(instructionCounter, &value);
+    sc_getaccumulator(&value);
     if (value >= 0) {
         printf("+%04X ", value);
     } else {
@@ -108,6 +135,11 @@ void displayOperation() {
     mt_setbgcolor(BLUE);
     mt_goto(7, 68);
     printf(" Operation ");
+    mt_setbgcolor(DEFAULT);
+    sc_memoryget(instructionCounter, &value);
+    sc_commanddecode(value, &opcode, &operand);
+    mt_goto(8, 64);
+    printf("OC: %2d | OP: %d", opcode, operand);
 }
 
 void displayFlags() {
@@ -144,12 +176,14 @@ void displayMenu() {
     mt_goto(16, 48);
     printf("R  - Run");
     mt_goto(17, 48);
-    printf("I  - Reset");
+    printf("T  - Execute");
     mt_goto(18, 48);
-    printf("F5 - Accumulator");
+    printf("I  - Reset");
     mt_goto(19, 48);
-    printf("F6 - instructionCounter");
+    printf("F5 - Accumulator");
     mt_goto(20, 48);
+    printf("F6 - instructionCounter");
+    mt_goto(21, 48);
     printf("Q - Exit");
 }
 

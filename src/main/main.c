@@ -18,18 +18,38 @@ void settimer(int sec) {
 }
 
 void signalhandler(int signo) {
-    switch (signo) {
-        case SIGALRM:
-            instructionCounter++;
-            displayAll();
-            break;
-        case SIGUSR1:
-            settimer(0);
-            reset();
-            break;
-        default:
-            exit(0);
+    int sigignore;
+    sc_regget(SIGIGNORE, &sigignore);
+    if (!sigignore) {
+        switch (signo) {
+            case SIGALRM:
+                displayAll();
+                CU();
+                instructionCounter++;
+                break;
+            case SIGUSR1:
+                sc_regset(CLKIGNORE, 0);
+                settimer(0);
+//            reset();
+                break;
+            default:
+                exit(0);
+        }
     }
+}
+
+int load_program(const char *filename) {
+    FILE *file;
+    file = fopen(filename, "rb");
+    if (file == NULL) return -1;
+    while (!feof(file)) {
+        int address, command;
+        fread(&address, sizeof(address), 1, file);
+        fread(&command, sizeof(command), 1, file);
+        sc_memoryset(address, command);
+    }
+    fclose(file);
+    return 0;
 }
 
 int main() {
@@ -41,42 +61,53 @@ int main() {
     signal(SIGALRM, signalhandler);
     signal(SIGUSR1, signalhandler);
     while (key != EXIT) {
-        displayAll();
-        rk_readkey(&key);
-        switch (key) {
-            case RIGHT:
-                if (instructionCounter < MEMSIZE - 1) instructionCounter++;
-                break;
-            case LEFT:
-                if (instructionCounter > 0) instructionCounter--;
-                break;
-            case UP:
-                if (instructionCounter - 10 >= 0) instructionCounter -= 10;
-                break;
-            case DOWN:
-                if (instructionCounter + 10 < MEMSIZE) instructionCounter += 10;
-                break;
-            case SAVE:
-                sc_memorysave("memory.dat");
-                break;
-            case LOAD:
-                sc_memoryload("memory.dat");
-                break;
-            case F5:
-                sc_memoryset(instructionCounter, promptForInt("Enter the value:"));
-                break;
-            case F6:
-                instructionCounter = promptForInt("Enter the pointer:");
-                break;
-            case RUN:
-                settimer(1);
-                break;
-            case RESET:
-                raise(SIGUSR1);
-                break;
-            default:
-                break;
+//        key = NONE;
+        int ignore = 0;
+        sc_regget(CLKIGNORE, &ignore);
+        if (!ignore) {
+            displayAll();
+            rk_readkey(&key);
+            switch (key) {
+                case RIGHT:
+                    if (instructionCounter < MEMSIZE - 1) instructionCounter++;
+                    break;
+                case LEFT:
+                    if (instructionCounter > 0) instructionCounter--;
+                    break;
+                case UP:
+                    if (instructionCounter - 10 >= 0) instructionCounter -= 10;
+                    break;
+                case DOWN:
+                    if (instructionCounter + 10 < MEMSIZE) instructionCounter += 10;
+                    break;
+                case SAVE:
+                    sc_memorysave("memory.dat");
+                    break;
+                case LOAD:
+                    sc_memoryload("memory.dat");
+                    break;
+                case F5:
+                    sc_setaccumulator(promptForInt("Enter the value:"));
+                    break;
+                case F6:
+                    instructionCounter = promptForInt("Enter the pointer:");
+                    break;
+                case RUN:
+                    load_program("out.o");
+                    sc_regset(CLKIGNORE, 1);
+                    settimer(1);
+                    break;
+                case EXEC:
+                    CU();
+                    break;
+                case RESET:
+                    raise(SIGUSR1);
+                    break;
+                default:
+                    break;
+            }
         }
+//        sc_reginit();
     }
     mt_setcurs(1);
     return 0;

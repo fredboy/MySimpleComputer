@@ -7,3 +7,9 @@ CMakeCache.txt
 Makefile
 memory.dat
 *.cbp
+*.sa
+*.o
+*.basic
+sat
+sbc
+mysimplecomputer*

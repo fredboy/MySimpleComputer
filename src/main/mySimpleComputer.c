@@ -1,5 +1,22 @@
+#include <signal.h>
+
 #include "mySimpleComputer.h"
 #include "myTerm.h"
+#include "myUserInterface.h"
+
+#define READ        0x10
+#define WRITE       0x11
+#define LOAD        0x20
+#define STORE       0x21
+#define ADD         0x30
+#define SUB         0x31
+#define DIVIDE      0x32
+#define MUL         0x33
+#define JUMP        0x40
+#define JNEG        0x41
+#define JZ          0x42
+#define HALT        0x43
+#define JNS         0x55
 
 int sc_memoryinit() {
     for (int i = 0; i < MEMSIZE; i++) sc_memory[i] = 0;
@@ -91,20 +108,20 @@ int sc_regget(int reg, int *value) {
     } else return -1;
 }
 
-int sc_commandencode(int opcode, int operand, int *value) {
+int sc_commandencode(int opcode, int operand, int *command) {
     if (opcode > 0xFF || operand > 0xFF) {
         sc_regset(CMDERROR, 1);
         return -1;
     } else {
-        *value = (opcode << 7) | operand;
+        *command = (opcode << 7) | operand;
         return 0;
     }
 }
 
-int sc_commanddecode(int value, int *opcode, int *operand) {
-    if (value > 0) {
-        *opcode = (value >> 7) & 0x7F;
-        *operand = value & 0x7F;
+int sc_commanddecode(int command, int *opcode, int *operand) {
+    if (command > 0) {
+        *opcode = (command >> 7) & 0x7F;
+        *operand = command & 0x7F;
         return 0;
     } else {
         sc_regset(CMDERROR, 1);
@@ -112,12 +129,78 @@ int sc_commanddecode(int value, int *opcode, int *operand) {
     }
 }
 
-int ALU(int command, int operand) {
+int sc_setaccumulator(int value) {
+    if (value < 0 || value > 0xFFFF) return -1;
+    accumulator = value;
+}
 
+int sc_getaccumulator(int *value) {
+    *value = accumulator;
+    return 0;
+}
+
+int ALU(int opcode, int operand) {
+    int memval, accval;
+    sc_memoryget(operand, &memval);
+    sc_getaccumulator(&accval);
+    switch (opcode) {
+        case ADD:
+            sc_setaccumulator(accval + memval);
+            break;
+        case SUB:
+            sc_setaccumulator(accval - memval);
+            break;
+        case DIVIDE:
+            if (memval == 0) sc_regset(DIVBYZERO, 1);
+            else sc_setaccumulator(accval / memval);
+            break;
+        case MUL:
+            sc_setaccumulator(accval * memval);
+            break;
+        default:
+            sc_regset(CMDERROR, 1);
+    }
 }
 
 int CU() {
-    int memvalue = 0;
-    sc_memoryget(instructionCounter, &memvalue);
+    int command, opcode, operand, value;
+    sc_memoryget(instructionCounter, &command);
+    if (sc_commanddecode(command, &opcode, &operand) == -1) {
+        sc_regset(CLKIGNORE, 1);
+        return -1;
+    }
 
+    switch (opcode) {
+        case READ:
+            sc_memoryset(operand, promptForInt("Enter the value:"));
+            break;
+        case WRITE:
+            sc_memoryget(operand, &value);
+            printValue(operand, value);
+            break;
+        case LOAD:
+            sc_memoryget(operand, &value);
+            sc_setaccumulator(value);
+            break;
+        case STORE:
+            sc_getaccumulator(&value);
+            sc_memoryset(operand, value);
+            break;
+        case JUMP:
+            instructionCounter = operand;
+            break;
+        case JNEG:
+            if (accumulator < 0) instructionCounter = operand;
+            break;
+        case JZ:
+            if (accumulator == 0) instructionCounter = operand;
+            break;
+        case JNS:
+            if (accumulator > 0) instructionCounter = operand;
+        case HALT:
+            raise(SIGUSR1);
+            break;
+        default:
+            ALU(opcode, operand);
+    }
 }

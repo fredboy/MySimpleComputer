@@ -38,7 +38,7 @@ int rk_readkey(enum keys *key) {
             *key = RUN;
             break;
         case 't':
-            *key = STEP;
+            *key = EXEC;
             break;
         case 'i':
             *key = RESET;

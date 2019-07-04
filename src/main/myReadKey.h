@@ -4,7 +4,7 @@
 #include <termios.h>
 
 enum keys {
-    NONE, F5, F6, LOAD, SAVE, RUN, STEP, RESET, EXIT, UP, LEFT, RIGHT, DOWN, EDIT
+    NONE, F5, F6, LOAD, SAVE, RUN, EXEC, RESET, EXIT, UP, LEFT, RIGHT, DOWN, EDIT
 };
 
 void rk_terminit();

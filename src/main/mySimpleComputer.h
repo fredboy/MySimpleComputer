@@ -11,14 +11,14 @@
 #define CMDSIZE 30
 #define REGSIZE 5
 
-#define OPOVERFLOW 0
+#define SIGIGNORE  0
 #define DIVBYZERO  1
 #define CLKIGNORE  2
 #define OUTOFMEM   3
 #define CMDERROR   4
 
 int sc_memory[MEMSIZE];
-int sc_registry, instructionCounter;
+int sc_registry, instructionCounter, accumulator;
 
 int sc_memoryinit();
 
@@ -40,5 +40,10 @@ int sc_commandencode(int, int, int *);
 
 int sc_commanddecode(int, int *, int *);
 
+int sc_setaccumulator(int);
+
+int sc_getaccumulator(int *);
+
+int CU();
 
 #endif //MYSIMPLECOMPUTER_MYSIMPLECOMPUTER_H
