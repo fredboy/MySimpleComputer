@@ -2,6 +2,8 @@
 
 #include <ctest.h>
 #include <mySimpleComputer.h>
+#include <parser.h>
+#include <time.h>
 
 CTEST(SC, MEMORY_SET) {
     ASSERT_EQUAL(0, sc_memoryset(64, 0xFF));
@@ -55,7 +57,25 @@ CTEST(SC, COMMAND_DECODE) {
     ASSERT_EQUAL(2, operand);
 }
 
+CTEST(PARSER, PARSE_ADDRESS) {
+    int random = rand() % 90 + 10;
+    char line[64];
+    sprintf(line, "%d ADD 10", random, line);
+    ASSERT_EQUAL(random, parse_address(line));
+}
+
+CTEST(PARSER, PARSE_OPCODE) {
+    char line[64] = "10    ADD    10";
+    ASSERT_EQUAL(0x30, parse_opcode(line));
+}
+
+CTEST(PARSER, PARSE_OPERAND) {
+    char *line = "10 ADD      10";
+    ASSERT_EQUAL(10, parse_operand(line));
+}
+
 int main(int argc, const char **argv) {
+    srand(time(NULL));
     sc_memoryinit();
     sc_reginit();
     return  ctest_main(argc, argv);
