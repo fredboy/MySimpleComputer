@@ -15,7 +15,7 @@ int main(int argc, const char **argv) {
     }
     char infilename[64], outfilename[64];
     memcpy(infilename, argv[1], strlen(argv[1]) * sizeof(char));
-    if (argc > 2) memcpy(outfilename, argv[2], strlen(argv[2]) * sizeof(char));
+    if (argc > 2) memcpy(outfilename, argv[2], strlen(argv[2]) * sizeof(char) + 1);
     else strcpy(outfilename, "out.o");
     FILE *infile = fopen(infilename, "r");
     FILE *outfile = fopen(outfilename, "wb");
