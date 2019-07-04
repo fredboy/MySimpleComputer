@@ -12,4 +12,5 @@ memory.dat
 *.basic
 sat
 sbc
-mysimplecomputer*
+mysimplecomputer
+mysimplecomputer_test
