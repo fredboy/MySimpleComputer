@@ -23,7 +23,7 @@ int parse_opcode(const char *line) {
     if (strcmp(opname, "READ") == 0) return 0x10;
     else if (strcmp(opname, "WRITE") == 0) return 0x11;
     else if (strcmp(opname, "LOAD") == 0) return 0x20;
-    else if (strcmp(opname, "STORE") == 0) return 0x22;
+    else if (strcmp(opname, "STORE") == 0) return 0x21;
     else if (strcmp(opname, "ADD") == 0) return 0x30;
     else if (strcmp(opname, "SUB") == 0) return 0x31;
     else if (strcmp(opname, "DIVIDE") == 0) return 0x32;
